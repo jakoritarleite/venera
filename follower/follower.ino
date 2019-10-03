@@ -2,7 +2,7 @@
 
 #define Kp 1 // experiment to determine this, start by something small that just makes your bot follow the line at a slow speed
 #define Kd 4// experiment to determine this, slowly increase the speeds and adjust this value. ( Note: Kp < Kd) 
-#define MaxSpeed 100// max speed of the robot
+#define MaxSpeed 150// max speed of the robot
 #define BaseSpeed 100 // this is the speed at which the motors should spin when the robot is perfectly on the line
 #define speedturn 60
 #define rightMotor1 8
