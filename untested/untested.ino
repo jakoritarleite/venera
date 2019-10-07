@@ -1,11 +1,12 @@
-//#include <RotaryEncoder.h> //https://github.com/mathertel/RotaryEncoder/
-#include <QTRSensor.h>
+#include <QTRSensors.h>
 
-QTRSensor qtr;
+//#include <RotaryEncoder.h> //https://github.com/mathertel/RotaryEncoder/
+
+QTRSensors qtr;
 
 //Motor Setup
 #define motorAs1 8
-#define motorAs2 9
+#define motorAs2 7
 
 #define motorBs1 12
 #define motorBs2 13
@@ -22,6 +23,14 @@ QTRSensor qtr;
 RotaryEncoder encoderA(encoderA1, encoderA2);
 RotaryEncoder encoderB(encoderB1, encoderB2);
 */
+
+#define Kp 1
+#define Kd 4
+
+#define speedBase 100
+#define speedMax 150
+
+
 
 uint16_t sensorValues[8];
 unsigned int sensorsArray[8];
@@ -75,32 +84,13 @@ uint16_t arrayToWork(uint16_t sensors[]) {
 
 	//	print the sensor values as numbers from 0 to 1000, where 0 means maximum
 	//	reflectance and 1000 means minumum reflectance, followed by the line
-	for (uint8_t i = 0; i < 8; i++) {Serial.print(sensors[i] + "\t")}
+	for (uint8_t i = 0; i < 8; i++) {Serial.print(sensors[i] + "\t");}
 
 	return(position);
 }
 
 void calculateDecoders() {
 	//Do stuff here
-	
-}
-
-void calculatePID(uint16_t pos) {
-	int error = pos - 3500;
-	int speedMotor = (Kp * error) + (Kd * (error - lastError))
-	lastError = error;
-
-	int speedA = speedBase + speedMotor;
-	int speedB = speedBase - speedMotor;
-
-	if (speedA > speedMax) { speedA = speedMax; }
-	else if (speedA < 0) { speedA = 0; } 
-	else if (speedB > speedMax) { speedB = speedMax; }
-	else if (speedB < 0) { speedB = 0; }
-
-	if (pos > 6700) { motorsToWork(speedA, speedB, HIGH, LOW, LOW, HIGH); }  //It was at previous code
-	else if (pos < 300) { motorsToWork(speedA, speedB, LOW, HIGH, HIGH, LOW); } //It was at previous code
-	else { motorsToWork(speedA, speedB, HIGH, LOW, HIGH, LOW); } //Go foward
 }
 
 void motorsToWork(int speedMotorA, int speedMotorB, int valueA1 = HIGH, int valueA2 = LOW, int valueB1 = HIGH, int valueB2 = LOW) {
@@ -113,9 +103,28 @@ void motorsToWork(int speedMotorA, int speedMotorB, int valueA1 = HIGH, int valu
 	analogWrite(pwmB, speedMotorB);
 }
 
-void dataDebug(string log, bool bln = True) { 
+void calculatePID(uint16_t pos) {
+  int error = pos - 3500;
+  int speedMotor = (Kp * error) + (Kd * (error - lastError));
+  lastError = error;
+
+  int speedA = speedBase + speedMotor;
+  int speedB = speedBase - speedMotor;
+
+  if (speedA > speedMax) { speedA = speedMax; }
+  else if (speedA < 0) { speedA = 0; } 
+  else if (speedB > speedMax) { speedB = speedMax; }
+  else if (speedB < 0) { speedB = 0; }
+
+  if (pos > 6700) { motorsToWork(speedA, speedB, HIGH, LOW, LOW, HIGH); }  //It was at previous code
+  else if (pos < 300) { motorsToWork(speedA, speedB, LOW, HIGH, HIGH, LOW); } //It was at previous code
+  else { motorsToWork(speedA, speedB, HIGH, LOW, HIGH, LOW); } //Go foward
+}
+
+void dataDebug(String log) { 
 	// It debugs all you want. If don't want to break line at debug, add False on call. Ex.: dataDebug(string, False);
 	// If not, just put the string at the call. Ex.: dataDebug(string);
-	if (bln) { Serial.println(log); } 
-	else if (!bln) { Serial.print(log); }
+	//if (bln) { Serial.println(log); } 
+	//else if (!bln) { Serial.print(log); }
+  Serial.println(log);
 }
