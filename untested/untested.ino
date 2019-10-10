@@ -27,6 +27,8 @@ QTRSensors qtr;
 #define speedBase 100
 #define speedMax 150
 
+int keyamento[] = {HIGH, LOW, HIGH, LOW};
+
 uint16_t sensorValues[8];
 unsigned int sensorsArray[8];
 const uint8_t pins[8] = { A0, A1, A2, A3, A4, A5, A6, A7 }; //Setting all the pins to an array variable to use it on qtr.setSensorPins();
@@ -36,7 +38,7 @@ int lastError = 0;
 void setup() {
 	pinMode(LED_BUILTIN, OUTPUT);
 	
-	qtr.setTypeRC(); //Set the sensor type to RC (sensor array with lenght is eight, if you uses the array with 6 sensors the type is Analog) 
+	qtr.setTypeAnalog(); //Set the sensor type to RC (sensor array with lenght is eight, if you uses the array with 6 sensors the type is Analog) 
 	qtr.setSensorPins((const uint8_t[]){A0, A1, A2, A3, A4, A5, A6, A7}, 8);
 	//qtr.setEmitterPin(); It set the emitter pin which indicates if the IR Leds are on or off  
 
@@ -71,6 +73,8 @@ void loop() {
 	int position = arrayToWork(sensorValues);
 	Serial.println("Position: " + String(position)); //Debugs position
 
+	calculatePID(position);
+
 }
 
 int arrayToWork(uint16_t sensors[]) {
@@ -80,11 +84,9 @@ int arrayToWork(uint16_t sensors[]) {
 	//	reflectance and 1000 means minumum reflectance, followed by the line
 	for (uint8_t i = 0; i < 8; i++) {Serial.print(sensors[i]); Serial.print("\t");}
 
-	calculatePID(position);
-
 	return(position);
 }
-
+/*
 void calculateDecoders() {
 	static int posA, posB = 0;
 
@@ -100,9 +102,9 @@ void calculateDecoders() {
 	/*
 	I need to see how it works, but I already have an idea of it. 
 	I will add to stop with interruptor
-	*/
+	
 
-}
+}*/
 
 void motorsToWork(int speedMotorA, int speedMotorB, int valueA1 = HIGH, int valueA2 = LOW, int valueB1 = HIGH, int valueB2 = LOW) {
 	digitalWrite(motorAs1, valueA1);
@@ -123,11 +125,19 @@ void calculatePID(int pos) {
   int speedB = speedBase - speedMotor;
 
   if (speedA > speedMax) { speedA = speedMax; }
-  else if (speedA < 0) { speedA = 0; } 
-  else if (speedB > speedMax) { speedB = speedMax; }
-  else if (speedB < 0) { speedB = 0; }
+  if (speedA < 0) { speedA *= -1; keyamento[0] = LOW; keyamento[1] = HIGH; } 
+  if (speedB > speedMax) { speedB = speedMax; }
+  if (speedB < 0) { speedB *= -1; keyamento[2] = LOW; keyamento[3] = HIGH; }
+  if (speedA > 0) { keyamento[0] = HIGH; keyamento[1] = LOW; }
+  if (speedB > 0) { keyamento[2] = HIGH; keyamento[3] = LOW; }
 
-  if (pos > 6700) { motorsToWork(speedA, speedB, HIGH, LOW, LOW, HIGH); }  //It was at previous code
+  Serial.println("SpeedA: " + String(speedA));
+  Serial.println("SpeedB: " + String(speedB));
+
+  /*if (pos > 6700) { motorsToWork(speedA, speedB, HIGH, LOW, LOW, HIGH); }  //It was at previous code
   else if (pos < 300) { motorsToWork(speedA, speedB, LOW, HIGH, HIGH, LOW); } //It was at previous code
-  else { motorsToWork(speedA, speedB, HIGH, LOW, HIGH, LOW); } //Go foward
+  else { motorsToWork(speedA, speedB, HIGH, LOW, HIGH, LOW); } //Go foward*/
+
+  motorsToWork(speedA, speedB, keyamento[0], keyamento[1], keyamento[2], keyamento[3]);
+
 }
